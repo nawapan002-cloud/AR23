@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Explorer: แนวคิดเชิงคำนวณและการเขียนโปรแกรม ม.3</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyberdark: '#0B0F19',
+                        cyberslate: '#1E293B',
+                        cybercyan: '#06B6D4',
+                        cyberpurple: '#8B5CF6',
+                        cyberemerald: '#10B981',
+                        cyberamber: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Sarabun & Orbitron -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #0B0F19;
+            color: #F8FAFC;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06B6D4;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #certificateModal, #certificateModal * {
+                visibility: visible;
+            }
+            #certificateModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: white !important;
+                color: black !important;
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-cyberdark text-slate-100 selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-cyan-500/30 sticky top-0 z-50 px-4 py-3 shadow-lg shadow-cyan-500/5">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse">
+                    <i class="fa-solid fa-satellite text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-bold text-lg sm:text-xl bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">SPACE EXPLORER: CT & CODING</h1>
+                    <p class="text-xs text-slate-400">วิชาเทคโนโลยี (วิทยาการคำนวณ) ม.3 • สสวท.</p>
+                </div>
+            </div>
+
+            <!-- Admin Badge & Sound Toggle -->
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-800/80 border border-purple-500/30 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-inner">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+                    <span class="text-slate-300">ผู้ดูแล: <strong class="text-purple-400">นางสาวศิวัชญา สุภาพรจิตรกุล</strong> (<span class="font-mono text-cyan-300">68115271219</span>)</span>
+                </div>
+                <button id="soundToggleBtn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow-sm" title="เปิด/ปิดเสียงเอฟเฟกต์">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Badge & Student Dashboard Bar -->
+    <div id="navBar" class="bg-slate-900/50 border-b border-slate-800 px-4 py-3 hidden">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-semibold text-white" id="displayStudentName">-</div>
+                    <div class="text-xs text-slate-400">ชั้น <span id="displayStudentClass">-</span> • เลขที่ <span id="displayStudentNo">-</span></div>
+                </div>
+            </div>
+
+            <!-- Score & Progress -->
+            <div class="flex items-center gap-4 flex-1 max-w-md">
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-400">ความก้าวหน้าภารกิจอวกาศ</span>
+                        <span id="progressText" class="text-cyan-400 font-bold font-orbitron">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
+                        <div id="progressBar" class="bg-gradient-to-r from-cyan-500 via-purple-500 to-emerald-400 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800/90 border border-amber-500/30 px-3 py-1.5 rounded-xl text-center">
+                    <div class="text-[10px] text-amber-400 uppercase tracking-widest font-orbitron">คะแนนรวม</div>
+                    <div class="text-lg font-bold font-orbitron text-amber-300"><span id="totalScore">0</span><span class="text-xs text-slate-400">/150</span></div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto py-1">
+                <button onclick="switchTab('dashboard')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 transition-all flex items-center gap-1.5 shadow-sm" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-line"></i> แดชบอร์ด
+                </button>
+                <button onclick="switchTab('lessons')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" data-tab="lessons">
+                    <i class="fa-solid fa-book-open"></i> บทเรียน ม.3
+                </button>
+                <button onclick="switchTab('minigame')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" data-tab="minigame">
+                    <i class="fa-solid fa-gamepad"></i> มินิเกม 4 เสาหลัก
+                </button>
+                <button onclick="switchTab('codinglab')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" data-tab="codinglab">
+                    <i class="fa-solid fa-robot"></i> Space Coding Lab
+                </button>
+                <button onclick="switchTab('quiz')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" data-tab="quiz">
+                    <i class="fa-solid fa-clipboard-question"></i> แบบทดสอบปลายหน่วย
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- 1. Registration Screen -->
+        <section id="screen-register" class="max-w-xl mx-auto my-8 bg-slate-900/90 border border-cyan-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur-xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center mb-8">
+                <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-purple-600 items-center justify-center text-3xl text-white mb-4 shadow-lg shadow-cyan-500/30">
+                    <i class="fa-solid fa-rocket animate-bounce"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold font-orbitron bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">ลงทะเบียนนักสำรวจอวกาศ</h2>
+                <p class="text-slate-400 text-sm mt-2">กรอกข้อมูลส่วนตัวเพื่อเริ่มต้นภารกิจเรียนรู้ "แนวคิดเชิงคำนวณและการเขียนโปรแกรม" ม.3</p>
+            </div>
+
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">ชื่อ-นามสกุล</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="regName" required placeholder="เช่น เด็กชายจักรวาล เรียนดี" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">ระดับชั้น</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-school"></i></span>
+                            <select id="regClass" required class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all appearance-none cursor-pointer">
+                                <option value="">เลือกห้องเรียน</option>
+                                <option value="ม.3/1">มัธยมศึกษาปีที่ 3/1</option>
+                                <option value="ม.3/2">มัธยมศึกษาปีที่ 3/2</option>
+                                <option value="ม.3/3">มัธยมศึกษาปีที่ 3/3</option>
+                                <option value="ม.3/4">มัธยมศึกษาปีที่ 3/4</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 pointer-events-none"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1 uppercase tracking-wider">เลขที่</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-hashtag"></i></span>
+                            <input type="number" id="regNo" min="1" max="50" required placeholder="เช่น 15" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-6 bg-gradient-to-r from-cyan-500 via-purple-600 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-cyan-500/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-orbitron uppercase tracking-wider text-sm">
+                    <i class="fa-solid fa-rocket-launch"></i> เริ่มต้นภารกิจอวกาศ <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- Tab 1: Dashboard -->
+        <section id="tab-dashboard" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Welcome Card -->
+                <div class="md:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 border border-cyan-500/30 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-2xl font-bold">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-1">นักสำรวจอวกาศระดับ ม.3</span>
+                            <h2 class="text-xl sm:text-2xl font-bold text-white" id="dashStudentName">ชื่อนักเรียน</h2>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                        ยินดีต้อนรับสู่ศูนย์ปฏิบัติการจำลองแนวคิดเชิงคำนวณ (Computational Thinking) และการเขียนโปรแกรม ตามหลักสูตร สสวท. ตัวชี้วัด ว 4.2 ม.3/1 ปฏิบัติภารกิจให้ครบทั้ง 4 ส่วนเพื่อคว้าใบประกาศนียบัตรระดับอวกาศ!
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="switchTab('lessons')" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition-all shadow-md shadow-cyan-500/20">
+                            <i class="fa-solid fa-book-open"></i> ศึกษาบทเรียน 4 เสาหลัก
+                        </button>
+                        <button onclick="switchTab('minigame')" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition-all shadow-md shadow-purple-500/20">
+                            <i class="fa-solid fa-gamepad"></i> เล่นมินิเกมจำแนกสถานการณ์
+                        </button>
+                        <button onclick="switchTab('codinglab')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20">
+                            <i class="fa-solid fa-robot"></i> เปิด Space Coding Lab
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Score Summary Card -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-orbitron font-bold text-sm text-slate-200">สถานะภารกิจ</h3>
+                            <i class="fa-solid fa-chart-pie text-cyan-400"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center text-xs p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                                <span class="text-slate-400"><i class="fa-solid fa-gamepad text-purple-400 mr-2"></i> มินิเกม 4 เสาหลัก</span>
+                                <span class="font-bold font-orbitron text-purple-400" id="dashMinigameScore">0 / 50</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                                <span class="text-slate-400"><i class="fa-solid fa-robot text-emerald-400 mr-2"></i> Space Coding Lab</span>
+                                <span class="font-bold font-orbitron text-emerald-400" id="dashCodingScore">0 / 50</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                                <span class="text-slate-400"><i class="fa-solid fa-clipboard-question text-cyan-400 mr-2"></i> แบบทดสอบปลายหน่วย</span>
+                                <span class="font-bold font-orbitron text-cyan-400" id="dashQuizScore">0 / 50</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-800">
+                        <button id="certBtn" onclick="openCertificate()" disabled class="w-full bg-slate-800 text-slate-500 cursor-not-allowed font-bold py-3 px-4 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-certificate"></i> รับใบประกาศนียบัตร
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Curriculum Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-500/60 rounded-2xl p-5 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-puzzle-piece text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">1. การย่อยปัญหา</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">Decomposition แตกปัญหาสลับซับซ้อนออกเป็นส่วนย่อย เช่น ระบบจองตั๋วรถไฟ</p>
+                </div>
+                <div class="bg-slate-900/80 border border-purple-500/20 hover:border-purple-500/60 rounded-2xl p-5 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-fingerprint text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">2. การจดจำรูปแบบ</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">Pattern Recognition การหาความสัมพันธ์และแนวโน้มที่เกิดขึ้นซ้ำๆ</p>
+                </div>
+                <div class="bg-slate-900/80 border border-emerald-500/20 hover:border-emerald-500/60 rounded-2xl p-5 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-cube text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">3. การคิดเชิงนามธรรม</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">Abstraction คัดเลือกเฉพาะข้อมูลสำคัญ ละทิ้งรายละเอียดไม่จำเป็น เช่น แผนที่ BTS</p>
+                </div>
+                <div class="bg-slate-900/80 border border-amber-500/20 hover:border-amber-500/60 rounded-2xl p-5 transition-all group">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-code-branch text-lg"></i>
+                    </div>
+                    <h4 class="font-bold text-white text-sm mb-1">4. การออกแบบอัลกอริทึม</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">Algorithm Design ลำดับขั้นตอนแก้ปัญหาอย่างเป็นระบบทีละขั้นตอน</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Lessons -->
+        <section id="tab-lessons" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-orbitron text-cyan-400 uppercase tracking-widest">หลักสูตร สสวท. ม.3 • ว 4.2</span>
+                        <h2 class="text-xl sm:text-2xl font-bold text-white font-orbitron mt-1">คลังบทเรียน 4 เสาหลักแนวคิดเชิงคำนวณ</h2>
+                    </div>
+                    <!-- Lesson Navigation Tabs -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="switchLesson(0)" class="lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-slate-950 transition-all" data-index="0">1. ย่อยปัญหา</button>
+                        <button onclick="switchLesson(1)" class="lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all" data-index="1">2. จดจำรูปแบบ</button>
+                        <button onclick="switchLesson(2)" class="lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all" data-index="2">3. เชิงนามธรรม</button>
+                        <button onclick="switchLesson(3)" class="lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all" data-index="3">4. อัลกอริทึม</button>
+                    </div>
+                </div>
+
+                <!-- Lesson Content Container -->
+                <div id="lessonContentContainer" class="space-y-6">
+                    <!-- Dynamic Lesson Content inserted via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Mini Game (Scenario Classification) -->
+        <section id="tab-minigame" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-orbitron text-purple-400 uppercase tracking-widest">มินิเกมฝึกทักษะ (50 คะแนน)</span>
+                        <h2 class="text-xl font-bold text-white font-orbitron mt-1">จำแนกสถานการณ์ 4 เสาหลัก</h2>
+                    </div>
+                    <div class="bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 text-sm font-orbitron font-bold text-purple-400">
+                        ข้อ <span id="mgCurrentQ">1</span>/5
+                    </div>
+                </div>
+
+                <div id="mgQuestionBox" class="space-y-6">
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6">
+                        <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/30 mb-3">สถานการณ์ที่ <span id="mgNum">1</span></span>
+                        <h3 id="mgText" class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed mb-6">กำลังโหลดโจทย์สถานการณ์...</h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="mgOptionsContainer">
+                            <!-- Options inserted dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Toast inside Minigame -->
+                <div id="mgFeedback" class="hidden mt-4 p-4 rounded-xl border text-sm transition-all"></div>
+            </div>
+        </section>
+
+        <!-- Tab 4: Space Coding Lab (Maze Simulation) -->
+        <section id="tab-codinglab" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl max-w-4xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-orbitron text-emerald-400 uppercase tracking-widest">Space Coding Lab (50 คะแนน)</span>
+                        <h2 class="text-xl font-bold text-white font-orbitron mt-1">ภารกิจควบคุมหุ่นยนต์สำรวจอวกาศ (4x4 Maze)</h2>
+                    </div>
+                    <div class="text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                        เป้าหมาย: นำหุ่นยนต์ไปถึงดาวเคราะห์เป้าหมายที่ตำแหน่ง <span class="text-emerald-400 font-mono">(3,3)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Canvas Maze Display -->
+                    <div class="flex flex-col items-center bg-slate-950/90 p-4 rounded-2xl border border-slate-800">
+                        <div class="relative w-full aspect-square max-w-[320px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-inner flex items-center justify-center">
+                            <canvas id="mazeCanvas" width="320" height="320" class="w-full h-full object-contain"></canvas>
+                        </div>
+                        <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-cyan-400"></div> หุ่นยนต์ Rover</div>
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-red-500"></div> อุกกาบาต</div>
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-amber-400"></div> เป้าหมาย</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Palette & Command Queue -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">แผงคำสั่ง (Command Palette)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="addCommand('MOVE')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 py-2.5 px-3 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 transition-all">
+                                    <i class="fa-solid fa-arrow-up"></i> เดินหน้า
+                                </button>
+                                <button onclick="addCommand('TURN_LEFT')" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 py-2.5 px-3 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 transition-all">
+                                    <i class="fa-solid fa-rotate-left"></i> เลี้ยวซ้าย
+                                </button>
+                                <button onclick="addCommand('TURN_RIGHT')" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 py-2.5 px-3 rounded-xl text-xs font-semibold flex flex-col items-center gap-1 transition-all">
+                                    <i class="fa-solid fa-rotate-right"></i> เลี้ยวขวา
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">ลำดับคำสั่งที่คิวไว้ (Pseudo-code Queue)</label>
+                                <button onclick="clearCommands()" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can mr-1"></i> ล้างโค้ด</button>
+                            </div>
+                            <div id="commandQueueList" class="w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-1.5 font-mono text-xs text-slate-300">
+                                <div class="text-slate-500 italic">ยังไม่มีคำสั่ง... กรุณาเพิ่มคำสั่งจากแผงด้านบน</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button id="runCodeBtn" onclick="runRobotCode()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> รันโค้ดหุ่นยนต์
+                            </button>
+                            <button onclick="resetMaze()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all border border-slate-700">
+                                <i class="fa-solid fa-rotate-right"></i> รีเซ็ต
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coding Lab Status Message -->
+                <div id="codingStatusMsg" class="hidden mt-4 p-4 rounded-xl border text-sm text-center"></div>
+            </div>
+        </section>
+
+        <!-- Tab 5: Final Achievement Quiz -->
+        <section id="tab-quiz" class="tab-content hidden space-y-6">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-orbitron text-cyan-400 uppercase tracking-widest">แบบทดสอบวัดผลสัมฤทธิ์ (50 คะแนน)</span>
+                        <h2 class="text-xl font-bold text-white font-orbitron mt-1">ข้อสอบปรนัยประยุกต์ใช้ ม.3</h2>
+                    </div>
+                    <div class="bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 text-sm font-orbitron font-bold text-cyan-400">
+                        ข้อ <span id="quizCurrentQ">1</span>/5
+                    </div>
+                </div>
+
+                <div id="quizQuestionBox" class="space-y-6">
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-6">
+                        <span class="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-3">คำถามที่ <span id="quizNum">1</span></span>
+                        <h3 id="quizText" class="text-base sm:text-lg font-medium text-slate-100 leading-relaxed mb-6">กำลังโหลดข้อสอบ...</h3>
+
+                        <div class="space-y-3" id="quizOptionsContainer">
+                            <!-- Options inserted dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Feedback Toast -->
+                <div id="quizFeedback" class="hidden mt-4 p-4 rounded-xl border text-sm transition-all"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Certificate Modal Popup -->
+    <div id="certificateModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white text-slate-900 w-full max-w-3xl rounded-3xl p-8 sm:p-12 shadow-2xl relative border-8 border-amber-400/50 text-center">
+            <button onclick="closeCertificate()" class="no-print absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-400/20 text-amber-600 flex items-center justify-center text-3xl mb-4 border border-amber-400/40">
+                <i class="fa-solid fa-award"></i>
+            </div>
+
+            <div class="text-xs font-orbitron uppercase tracking-widest text-slate-500 mb-1">สถาบันส่งเสริมการสอนวิทยาศาสตร์และเทคโนโลยี (สสวท.) และ SciMath</div>
+            <h2 class="text-2xl sm:text-3xl font-bold font-orbitron text-slate-900 mb-2">ประกาศนียบัตรรับรองสัมฤทธิผลการเรียนรู้</h2>
+            <p class="text-sm text-slate-600 italic mb-6">"Computational Thinking & Coding Explorer"</p>
+
+            <p class="text-sm text-slate-700 mb-2">ขอมอบประกาศนียบัตรฉบับนี้ไว้เพื่อแสดงว่า</p>
+            <h3 id="certStudentName" class="text-xl sm:text-2xl font-bold text-purple-700 font-orbitron mb-2 underline decoration-dashed underline-offset-8">-</h3>
+            <p class="text-sm text-slate-700 mb-6">ชั้น <span id="certStudentClass">-</span> • เลขที่ <span id="certStudentNo">-</span> ได้ผ่านภารกิจการเรียนรู้และทดสอบด้วยคะแนนรวมสุทธิ</p>
+
+            <div class="inline-block bg-amber-50 border border-amber-200 rounded-2xl px-6 py-3 mb-8">
+                <div class="text-xs font-orbitron text-amber-800 uppercase tracking-wider">คะแนนรวมสุทธิ</div>
+                <div class="text-2xl font-bold font-orbitron text-amber-600"><span id="certTotalScore">0</span> <span class="text-sm text-slate-500">/ 150 คะแนน</span></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 text-xs text-slate-600 border-t border-slate-200 pt-6 mt-4">
+                <div>
+                    <div class="font-bold text-slate-800">นางสาวศิวัชญา สุภาพรจิตรกุล</div>
+                    <div>ผู้ดูแลระบบและประเมินผลการเรียนรู้</div>
+                    <div class="text-[10px] text-slate-400 font-mono">ID: 68115271219</div>
+                </div>
+                <div>
+                    <div id="certDate" class="font-semibold text-slate-800">-</div>
+                    <div>วันที่ออกเอกสารระบบอัตโนมัติ</div>
+                </div>
+            </div>
+
+            <div class="no-print mt-8 flex justify-center gap-4">
+                <button onclick="window.print()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> พิมพ์ใบประกาศนียบัตร (PDF/A4)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div>วิชาเทคโนโลยี (วิทยาการคำนวณ) ชั้นมัธยมศึกษาปีที่ 3 • สสวท. (ว 4.2 ม.3/1)</div>
+            <div>ผู้ดูแลระบบ: <span class="text-purple-400">นางสาวศิวัชญา สุภาพรจิตรกุล</span> (<span class="font-mono text-cyan-400">68115271219</span>)</div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Engine -->
+    <script>
+        // --- Web Audio API Sound System ---
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.setValueAtTime(100, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        noteGain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                        noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                        noteOsc.start(now + idx * 0.1);
+                        noteOsc.stop(now + idx * 0.1 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('click');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        // --- Application State ---
+        let student = {
+            name: '',
+            className: '',
+            number: '',
+            scores: {
+                minigame: 0,
+                coding: 0,
+                quiz: 0
+            }
+        };
+
+        // Lessons Content Data (สสวท. ม.3)
+        const lessonsData = [
+            {
+                title: "1. การย่อยปัญหา (Decomposition)",
+                subtitle: "แตกปัญหาสลับซับซ้อนออกเป็นส่วนย่อยเพื่อให้จัดการได้ง่ายขึ้น",
+                exampleTitle: "ตัวอย่างเชิงลึก: ระบบจองตั๋วรถไฟออนไลน์",
+                desc: "ในการพัฒนาแอปพลิเคชันจองตั๋วรถไฟที่มีความซับซ้อนสูง แนวคิดการย่อยปัญหาจะถูกนำมาใช้แบ่งระบบใหญ่ออกเป็นโมดูลย่อย 4 ส่วนหลัก:",
+                points: [
+                    "ระบบจัดการสมาชิก (Membership System): สำหรับลงทะเบียน ตรวจสอบสิทธิ์ และเก็บประวัติผู้โดยสาร",
+                    "ระบบค้นหาเส้นทางและตารางเวลา (Route & Schedule Finder): ประมวลผลต้นทาง ปลายทาง และเวลาเดินทาง",
+                    "ระบบผังที่นั่ง (Seat Allocation Engine): แสดงผังตู้โดยสารและจองสถานะที่นั่งแบบเรียลไทม์",
+                    "ระบบชำระเงิน (Payment Gateway): เชื่อมต่อระบบตัดบัญชีธนาคารและออกตั๋วอิเล็กทรอนิกส์"
+                ]
+            },
+            {
+                title: "2. การจดจำรูปแบบ (Pattern Recognition)",
+                subtitle: "การหาความสัมพันธ์ แนวโน้ม หรือพฤติกรรมที่เกิดขึ้นซ้ำๆ เพื่อนำมาคาดการณ์",
+                exampleTitle: "ตัวอย่างเชิงลึก: การวิเคราะห์พฤติกรรมยอดขายร้านสะดวกซื้อ",
+                desc: "ระบบวิเคราะห์ข้อมูลอัตโนมัติสำรวจพฤติกรรมการซื้อสินค้าของลูกค้าผ่านรูปแบบที่เกิดซ้ำ:",
+                points: [
+                    "วิเคราะห์ยอดขายขนมขบเคี้ยวและเครื่องดื่มพุ่งสูงขึ้นเป็นพิเศษในช่วงเย็นวันศุกร์และเสาร์",
+                    "พบรูปแบบความสัมพันธ์ว่าลูกค้ามักซื้อน้ำอัดลมควบคู่กับน้ำแข็งและขนมปังเสมอ",
+                    "นำรูปแบบที่พบไปจัดวางสินค้าในชั้นวาง (Product Placement) ให้ใกล้กันเพื่อเพิ่มยอดขาย",
+                    "คาดการณ์ปริมาณสินค้าคงคลังล่วงหน้าในช่วงเทศกาลวันหยุดยาว"
+                ]
+            },
+            {
+                title: "3. การคิดเชิงนามธรรม (Abstraction)",
+                subtitle: "การคัดเลือกเฉพาะข้อมูลที่สำคัญ ละทิ้งรายละเอียดที่ไม่จำเป็นเพื่อลดความซับซ้อน",
+                exampleTitle: "ตัวอย่างเชิงลึก: แผนที่เส้นทางรถไฟฟ้า BTS / MRT",
+                desc: "แผนที่รถไฟฟ้าในเมืองใหญ่แสดงให้เห็นพลังของการคิดเชิงนามธรรมอย่างชัดเจน:",
+                points: [
+                    "ละทิ้งรายละเอียดที่ไม่จำเป็น เช่น ขนาดตึก ถนนจริง แม่น้ำคดเคี้ยว หรือสภาพอากาศรอบเส้นทาง",
+                    "คงไว้เฉพาะข้อมูลสำคัญ ได้แก่ ชื่อสถานี สีเส้นทาง และจุดเชื่อมต่อ (Interchange)",
+                    "ช่วยให้ผู้โดยสารสามารถวางแผนการเดินทางได้อย่างรวดเร็วและถูกต้องโดยไม่สับสนกับข้อมูลภาระ",
+                    "ใช้หลักการเดียวกันกับการสร้างโมเดลฐานข้อมูลและผังงานระบบ"
+                ]
+            },
+            {
+                title: "4. การออกแบบอัลกอริทึม (Algorithm Design)",
+                subtitle: "การลำดับขั้นตอนแก้ปัญหาอย่างเป็นระบบทีละขั้นตอน (Step-by-Step)",
+                exampleTitle: "ตัวอย่างเชิงลึก: รหัสลำลอง (Pseudo-code) การคำนวณเกรดเฉลี่ย",
+                desc: "การเขียนอัลกอริทึมเพื่อประมวลผลเกรดเฉลี่ยสะสม (GPA) ของนักเรียน ม.3:",
+                points: [
+                    "รับค่าคะแนนรวมและหน่วยกิตของทุกรายวิชาเข้าสู่ระบบ",
+                    "วนลูปคำนวณผลคูณระหว่างเกรดกับหน่วยกิตของแต่ละวิชา (Grade × Credit)",
+                    "หารผลรวมทั้งหมดด้วยจำนวนหน่วยกิตสะสมรวม",
+                    "แสดงผลลัพธ์เกรดเฉลี่ยออกทางหน้าจอพร้อมเงื่อนไขตรวจสอบเกียรตินิยม"
+                ]
+            }
+        ];
+
+        let currentLessonIndex = 0;
+
+        function switchLesson(index) {
+            playSound('click');
+            currentLessonIndex = index;
+            document.querySelectorAll('.lesson-tab-btn').forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.className = 'lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-slate-950 transition-all';
+                } else {
+                    btn.className = 'lesson-tab-btn px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all';
+                }
+            });
+
+            const lesson = lessonsData[index];
+            const container = document.getElementById('lessonContentContainer');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-slate-950/80 border border-cyan-500/30 rounded-2xl p-6">
+                        <h3 class="text-lg sm:text-xl font-bold text-cyan-400 font-orbitron mb-2">${lesson.title}</h3>
+                        <p class="text-slate-300 text-sm mb-4">${lesson.subtitle}</p>
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                            <h4 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2"><i class="fa-solid fa-lightbulb mr-1.5"></i> ${lesson.exampleTitle}</h4>
+                            <p class="text-slate-300 text-sm mb-3">${lesson.desc}</p>
+                            <ul class="space-y-2">
+                                ${lesson.points.map(p => `<li class="text-xs text-slate-300 flex items-start gap-2"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i> <span>${p}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Mini Game Data & Logic ---
+        const minigameQuestions = [
+            {
+                text: "การแบ่งขั้นตอนสร้างแอปพลิเคชันออกเป็นโมดูลย่อย (ระบบสมาชิก ระบบค้นหา ระบบชำระเงิน)",
+                options: [
+                    { label: "1. การย่อยปัญหา (Decomposition)", key: "Decomposition", correct: true },
+                    { label: "2. การจดจำรูปแบบ (Pattern Recognition)", key: "Pattern Recognition", correct: false },
+                    { label: "3. การคิดเชิงนามธรรม (Abstraction)", key: "Abstraction", correct: false },
+                    { label: "4. การออกแบบอัลกอริทึม (Algorithm Design)", key: "Algorithm Design", correct: false }
+                ],
+                explanation: "ถูกต้อง! การแตกปัญหาใหญ่เป็นระบบโมดูลย่อยคือ Decomposition"
+            },
+            {
+                text: "การสังเกตข้อผิดพลาดที่เกิดขึ้นซ้ำๆ ในการทำแบบทดสอบของนักเรียนเพื่อนำมาปรับปรุงเนื้อหา",
+                options: [
+                    { label: "1. การย่อยปัญหา (Decomposition)", key: "Decomposition", correct: false },
+                    { label: "2. การจดจำรูปแบบ (Pattern Recognition)", key: "Pattern Recognition", correct: true },
+                    { label: "3. การคิดเชิงนามธรรม (Abstraction)", key: "Abstraction", correct: false },
+                    { label: "4. การออกแบบอัลกอริทึม (Algorithm Design)", key: "Algorithm Design", correct: false }
+                ],
+                explanation: "ถูกต้อง! การสังเกตพฤติกรรมหรือข้อผิดพลาดซ้ำๆ คือ Pattern Recognition"
+            },
+            {
+                text: "การออกแบบแอปพยากรณ์อากาศโดยซ่อนข้อมูลเคสโทรศัพท์ของผู้ใช้และรายละเอียดฮาร์ดแวร์ที่ไม่เกี่ยวข้อง",
+                options: [
+                    { label: "1. การย่อยปัญหา (Decomposition)", key: "Decomposition", correct: false },
+                    { label: "2. การจดจำรูปแบบ (Pattern Recognition)", key: "Pattern Recognition", correct: false },
+                    { label: "3. การคิดเชิงนามธรรม (Abstraction)", key: "Abstraction", correct: true },
+                    { label: "4. การออกแบบอัลกอริทึม (Algorithm Design)", key: "Algorithm Design", correct: false }
+                ],
+                explanation: "ถูกต้อง! การคัดเลือกเฉพาะข้อมูลสำคัญและละทิ้งรายละเอียดไม่จำเป็นคือ Abstraction"
+            },
+            {
+                text: "การเขียนผังงาน (Flowchart) ลำดับการทำงานของหุ่นยนต์ดูดฝุ่นอัตโนมัติทีละขั้นตอน",
+                options: [
+                    { label: "1. การย่อยปัญหา (Decomposition)", key: "Decomposition", correct: false },
+                    { label: "2. การจดจำรูปแบบ (Pattern Recognition)", key: "Pattern Recognition", correct: false },
+                    { label: "3. การคิดเชิงนามธรรม (Abstraction)", key: "Abstraction", correct: false },
+                    { label: "4. การออกแบบอัลกอริทึม (Algorithm Design)", key: "Algorithm Design", correct: true }
+                ],
+                explanation: "ถูกต้อง! การลำดับขั้นตอนแก้ปัญหาเป็นผังงานหรือรหัสลำลองคือ Algorithm Design"
+            },
+            {
+                text: "การแยกชิ้นส่วนคอมพิวเตอร์ออกเป็น เมนบอร์ด แรม ฮาร์ดดิสก์ และพาวเวอร์ซัพพลาย เพื่อตรวจหาสาเหตุที่เครื่องเปิดไม่ติด",
+                options: [
+                    { label: "1. การย่อยปัญหา (Decomposition)", key: "Decomposition", correct: true },
+                    { label: "2. การจดจำรูปแบบ (Pattern Recognition)", key: "Pattern Recognition", correct: false },
+                    { label: "3. การคิดเชิงนามธรรม (Abstraction)", key: "Abstraction", correct: false },
+                    { label: "4. การออกแบบอัลกอริทึม (Algorithm Design)", key: "Algorithm Design", correct: false }
+                ],
+                explanation: "ถูกต้อง! การแยกชิ้นส่วนอุปกรณ์เพื่อแก้ปัญหาคือ Decomposition"
+            }
+        ];
+
+        let currentMgIndex = 0;
+        let mgScore = 0;
+
+        function loadMinigame() {
+            if (currentMgIndex >= minigameQuestions.length) {
+                document.getElementById('mgQuestionBox').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-3xl mb-4 border border-purple-500/40">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white font-orbitron mb-2">จบมินิเกม 4 เสาหลักแล้ว!</h3>
+                        <p class="text-slate-300 text-sm mb-6">คุณได้คะแนนมินิเกม <strong class="text-purple-400 font-orbitron text-lg">${mgScore}</strong> / 50 คะแนน</p>
+                        <button onclick="resetMinigame()" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-6 py-2.5 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all">เล่นใหม่อีกครั้ง</button>
+                    </div>
+                `;
+                document.getElementById('mgFeedback').classList.add('hidden');
+                return;
+            }
+
+            const q = minigameQuestions[currentMgIndex];
+            document.getElementById('mgCurrentQ').innerText = currentMgIndex + 1;
+            document.getElementById('mgNum').innerText = currentMgIndex + 1;
+            document.getElementById('mgText').innerText = q.text;
+
+            const container = document.getElementById('mgOptionsContainer');
+            container.innerHTML = q.options.map((opt, idx) => `
+                <button onclick="answerMinigame(${opt.correct})" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/50 p-4 rounded-xl text-left text-xs sm:text-sm text-slate-200 transition-all flex items-center justify-between group">
+                    <span>${opt.label}</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-purple-400 transition-colors"></i>
+                </button>
+            `).join('');
+            document.getElementById('mgFeedback').classList.add('hidden');
+        }
+
+        function answerMinigame(isCorrect) {
+            playSound('click');
+            const feedback = document.getElementById('mgFeedback');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('correct');
+                mgScore += 10;
+                feedback.className = 'mt-4 p-4 rounded-xl border bg-emerald-950/50 border-emerald-500/40 text-emerald-300 text-sm';
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i> <strong>ยอดเยี่ยม!</strong> ${minigameQuestions[currentMgIndex].explanation}`;
+            } else {
+                playSound('wrong');
+                feedback.className = 'mt-4 p-4 rounded-xl border bg-red-950/50 border-red-500/40 text-red-300 text-sm';
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i> <strong>ยังไม่ถูกต้อง!</strong> คำตอบที่ถูกต้องคือ: ${minigameQuestions[currentMgIndex].options.find(o=>o.correct).label}`;
+            }
+
+            student.scores.minigame = mgScore;
+            updateTotalScore();
+
+            setTimeout(() => {
+                currentMgIndex++;
+                loadMinigame();
+            }, 1800);
+        }
+
+        function resetMinigame() {
+            currentMgIndex = 0;
+            mgScore = 0;
+            student.scores.minigame = 0;
+            updateTotalScore();
+            loadMinigame();
+        }
+
+        // --- Space Coding Lab Maze Simulation ---
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const tileSize = 80; // 320 / 4
+
+        // Maze Map: 0 = empty, 1 = obstacle, 2 = target (3,3)
+        let robot = { x: 0, y: 0, dir: 0 }; // dir: 0=Right, 1=Down, 2=Left, 3=Up
+        let obstacles = [{x: 1, y: 0}, {x: 1, y: 2}, {x: 2, y: 1}, {x: 3, y: 1}];
+        let commandQueue = [];
+        let codingScore = 0;
+        let isRunningCode = false;
+
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Grid
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    ctx.strokeStyle = '#1E293B';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(c * tileSize, r * tileSize, tileSize, tileSize);
+
+                    // Background grid color
+                    ctx.fillStyle = '#0F172A';
+                    ctx.fillRect(c * tileSize + 1, r * tileSize + 1, tileSize - 2, tileSize - 2);
+                }
+            }
+
+            // Draw Target (3,3)
+            ctx.fillStyle = '#F59E0B';
+            ctx.beginPath();
+            ctx.arc(3 * tileSize + tileSize/2, 3 * tileSize + tileSize/2, tileSize/3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#0B0F19';
+            ctx.font = 'bold 14px Orbitron';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⭐', 3 * tileSize + tileSize/2, 3 * tileSize + tileSize/2);
+
+            // Draw Obstacles
+            obstacles.forEach(obs => {
+                ctx.fillStyle = '#EF4444';
+                ctx.beginPath();
+                ctx.arc(obs.x * tileSize + tileSize/2, obs.y * tileSize + tileSize/2, tileSize/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 12px FontAwesome';
+                ctx.fillText('☄️', obs.x * tileSize + tileSize/2, obs.y * tileSize + tileSize/2);
+            });
+
+            // Draw Robot Rover
+            const rx = robot.x * tileSize + tileSize/2;
+            const ry = robot.y * tileSize + tileSize/2;
+            ctx.save();
+            ctx.translate(rx, ry);
+            ctx.rotate(robot.dir * Math.PI / 2);
+
+            // Robot Body (Triangle)
+            ctx.fillStyle = '#06B6D4';
+            ctx.beginPath();
+            ctx.moveTo(20, 0);
+            ctx.lineTo(-15, 15);
+            ctx.lineTo(-10, 0);
+            ctx.lineTo(-15, -15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function addCommand(cmd) {
+            playSound('click');
+            commandQueue.push(cmd);
+            renderCommandQueue();
+        }
+
+        function clearCommands() {
+            playSound('click');
+            commandQueue = [];
+            renderCommandQueue();
+        }
+
+        function renderCommandQueue() {
+            const list = document.getElementById('commandQueueList');
+            if (commandQueue.length === 0) {
+                list.innerHTML = `<div class="text-slate-500 italic">ยังไม่มีคำสั่ง... กรุณาเพิ่มคำสั่งจากแผงด้านบน</div>`;
+                return;
+            }
+            list.innerHTML = commandQueue.map((c, i) => `
+                <div class="flex items-center justify-between bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <span class="text-cyan-400 font-mono">[${i+1}] ${c}</span>
+                    <button onclick="removeCommand(${i})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function removeCommand(index) {
+            playSound('click');
+            commandQueue.splice(index, 1);
+            renderCommandQueue();
+        }
+
+        async function runRobotCode() {
+            if (isRunningCode || commandQueue.length === 0) return;
+            isRunningCode = true;
+            document.getElementById('runCodeBtn').disabled = true;
+
+            // Reset position before run
+            robot.x = 0;
+            robot.y = 0;
+            robot.dir = 0;
+            drawMaze();
+
+            const statusMsg = document.getElementById('codingStatusMsg');
+            statusMsg.className = 'mt-4 p-4 rounded-xl border text-sm text-center bg-slate-950 border-slate-800 text-slate-300';
+            statusMsg.classList.remove('hidden');
+            statusMsg.innerText = 'กำลังประมวลผลคำสั่งหุ่นยนต์...';
+
+            let failed = false;
+            let success = false;
+
+            for (let i = 0; i < commandQueue.length; i++) {
+                await new Promise(r => setTimeout(r, 600));
+                const cmd = commandQueue[i];
+
+                if (cmd === 'MOVE') {
+                    if (robot.dir === 0) robot.x++;
+                    else if (robot.dir === 1) robot.y++;
+                    else if (robot.dir === 2) robot.x--;
+                    else if (robot.dir === 3) robot.y--;
+                } else if (cmd === 'TURN_LEFT') {
+                    robot.dir = (robot.dir + 3) % 4;
+                } else if (cmd === 'TURN_RIGHT') {
+                    robot.dir = (robot.dir + 1) % 4;
+                }
+
+                drawMaze();
+
+                // Check bounds
+                if (robot.x < 0 || robot.x > 3 || robot.y < 0 || robot.y > 3) {
+                    failed = true;
+                    break;
+                }
+
+                // Check obstacle collision
+                if (obstacles.some(o => o.x === robot.x && o.y === robot.y)) {
+                    failed = true;
+                    break;
+                }
+
+                // Check goal (3,3)
+                if (robot.x === 3 && robot.y === 3) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success) {
+                playSound('win');
+                codingScore = 50;
+                student.scores.coding = codingScore;
+                updateTotalScore();
+                statusMsg.className = 'mt-4 p-4 rounded-xl border bg-emerald-950/50 border-emerald-500/40 text-emerald-300 text-sm text-center';
+                statusMsg.innerHTML = `<i class="fa-solid fa-trophy mr-2"></i> <strong>ภารกิจสำเร็จ!</strong> หุ่นยนต์ถึงเป้าหมายแล้ว รับไปเลย 50 คะแนน`;
+            } else if (failed) {
+                playSound('wrong');
+                statusMsg.className = 'mt-4 p-4 rounded-xl border bg-red-950/50 border-red-500/40 text-red-300 text-sm text-center';
+                statusMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> <strong>ภารกิจล้มเหลว!</strong> หุ่นยนต์ชนอุกกาบาตหรือตกขอบตาราง ลองตรวจสอบชุดคำสั่งใหม่`;
+            } else {
+                playSound('wrong');
+                statusMsg.className = 'mt-4 p-4 rounded-xl border bg-amber-950/50 border-amber-500/40 text-amber-300 text-sm text-center';
+                statusMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-2"></i> <strong>ยังไม่ถึงเป้าหมาย!</strong> หุ่นยนต์ยังไปไม่ถึงตำแหน่ง (3,3)`;
+            }
+
+            isRunningCode = false;
+            document.getElementById('runCodeBtn').disabled = false;
+        }
+
+        function resetMaze() {
+            playSound('click');
+            robot.x = 0;
+            robot.y = 0;
+            robot.dir = 0;
+            drawMaze();
+            document.getElementById('codingStatusMsg').classList.add('hidden');
+        }
+
+        // --- Final Quiz Data & Logic ---
+        const quizQuestions = [
+            {
+                text: "โรงเรียนแห่งหนึ่งต้องการพัฒนาแอปพลิเคชันตารางสอนและเช็คชื่อออนไลน์ที่มีระบบย่อยหลายส่วน นักพัฒนาควรนำแนวคิดเชิงคำนวณข้อใดมาใช้เป็นอันดับแรกในการแบ่งงานให้ทีมย่อย",
+                options: [
+                    { label: "ก. การคิดเชิงนามธรรม (Abstraction)", correct: false },
+                    { label: "ข. การย่อยปัญหา (Decomposition)", correct: true },
+                    { label: "ค. การจดจำรูปแบบ (Pattern Recognition)", correct: false },
+                    { label: "ง. การออกแบบอัลกอริทึม (Algorithm Design)", correct: false }
+                ],
+                explanation: "ถูกต้อง! การแบ่งงานใหญ่เป็นระบบย่อยๆ สำหรับทีมพัฒนาคือการย่อยปัญหา (Decomposition)"
+            },
+            {
+                text: "ข้อใดแสดงถึงการประยุกต์ใช้ 'การคิดเชิงนามธรรม (Abstraction)' ได้ชัดเจนที่สุด",
+                options: [
+                    { label: "ก. การแตกขั้นตอนการทำอาหารออกเป็นสูตรย่อย", correct: false },
+                    { label: "ข. การเขียนผังงานแสดงลำดับขั้นตอนการคำนวณพื้นที่", correct: false },
+                    { label: "ค. การจัดทำแผนผังห้องเรียนโดยตัดโต๊ะเก้าอี้ตัวเล็กและสีสันที่ไม่จำเป็นออก", correct: true },
+                    { label: "ง. การสังเกตสถิติการมาสายของนักเรียนในทุกวันจันทร์", correct: false }
+                ],
+                explanation: "ถูกต้อง! การตัดรายละเอียดที่ไม่จำเป็นออกและคงไว้เฉพาะข้อมูลสำคัญคือ Abstraction"
+            },
+            {
+                text: "ในการเขียนโปรแกรมคำนวณภาษีเงินได้ หากมีเงื่อนไขซับซ้อนที่ต้องตรวจสอบหลายชั้นตอน นักเรียนควรใช้กระบวนการใดในการออกแบบชุดคำสั่ง",
+                options: [
+                    { label: "ก. การออกแบบอัลกอริทึม (Algorithm Design)", correct: true },
+                    { label: "ข. การย่อยปัญหา (Decomposition)", correct: false },
+                    { label: "ค. การคิดเชิงนามธรรม (Abstraction)", correct: false },
+                    { label: "ง. การจดจำรูปแบบ (Pattern Recognition)", correct: false }
+                ],
+                explanation: "ถูกต้อง! การลำดับเงื่อนไขและขั้นตอนการแก้ปัญหาทีละขั้นตอนคือ Algorithm Design"
+            },
+            {
+                text: "ระบบแนะนำสินค้า (Recommendation System) ในร้านค้าออนไลน์วิเคราะห์ประวัติการซื้อสินค้าของลูกค้าเพื่อเสนอสินค้าที่ตรงใจ ข้อนี้ตรงกับแนวคิดใด",
+                options: [
+                    { label: "ก. การออกแบบอัลกอริทึม", correct: false },
+                    { label: "ข. การจดจำรูปแบบ (Pattern Recognition)", correct: true },
+                    { label: "ค. การย่อยปัญหา", correct: false },
+                    { label: "ง. การคิดเชิงนามธรรม", correct: false }
+                ],
+                explanation: "ถูกต้อง! การวิเคราะห์พฤติกรรมและความสัมพันธ์ที่เกิดขึ้นซ้ำๆ คือ Pattern Recognition"
+            },
+            {
+                text: "ข้อใดคือประโยชน์สูงสุดของการประยุกต์ใช้แนวคิดเชิงคำนวณในการแก้ปัญหาในชีวิตประจำวัน",
+                options: [
+                    { label: "ก. ทำให้ไม่ต้องใช้คอมพิวเตอร์ในการทำงานอีกต่อไป", correct: false },
+                    { label: "ข. ช่วยให้สามารถท่องจำสูตรทางวิทยาศาสตร์ได้เร็วขึ้น", correct: false },
+                    { label: "ค. ช่วยแก้ปัญหาได้อย่างเป็นระบบ มีเหตุผล และมีประสิทธิภาพ", correct: true },
+                    { label: "ง. ลดต้นทุนในการซื้ออุปกรณ์อิเล็กทรอนิกส์ทั้งหมด", correct: false }
+                ],
+                explanation: "ถูกต้อง! เป้าหมายหลักของ Computational Thinking คือการแก้ปัญหาอย่างมีระบบและมีประสิทธิภาพ"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+
+        function loadQuiz() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                document.getElementById('quizQuestionBox').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-3xl mb-4 border border-cyan-500/40">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white font-orbitron mb-2">ทำแบบทดสอบปลายหน่วยเสร็จสิ้น!</h3>
+                        <p class="text-slate-300 text-sm mb-6">คุณได้คะแนนแบบทดสอบ <strong class="text-cyan-400 font-orbitron text-lg">${quizScore}</strong> / 50 คะแนน</p>
+                        <button onclick="resetQuiz()" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all">ทำแบบทดสอบใหม่อีกครั้ง</button>
+                    </div>
+                `;
+                document.getElementById('quizFeedback').classList.add('hidden');
+                return;
+            }
+
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById('quizCurrentQ').innerText = currentQuizIndex + 1;
+            document.getElementById('quizNum').innerText = currentQuizIndex + 1;
+            document.getElementById('quizText').innerText = q.text;
+
+            const container = document.getElementById('quizOptionsContainer');
+            container.innerHTML = q.options.map((opt, idx) => `
+                <button onclick="answerQuiz(${opt.correct})" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 p-4 rounded-xl text-left text-xs sm:text-sm text-slate-200 transition-all flex items-center justify-between group">
+                    <span>${opt.label}</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-cyan-400 transition-colors"></i>
+                </button>
+            `).join('');
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        function answerQuiz(isCorrect) {
+            playSound('click');
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('correct');
+                quizScore += 10;
+                feedback.className = 'mt-4 p-4 rounded-xl border bg-emerald-950/50 border-emerald-500/40 text-emerald-300 text-sm';
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i> <strong>ถูกต้อง!</strong> ${quizQuestions[currentQuizIndex].explanation}`;
+            } else {
+                playSound('wrong');
+                feedback.className = 'mt-4 p-4 rounded-xl border bg-red-950/50 border-red-500/40 text-red-300 text-sm';
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i> <strong>ยังไม่ถูกต้อง!</strong> ${quizQuestions[currentQuizIndex].explanation}`;
+            }
+
+            student.scores.quiz = quizScore;
+            updateTotalScore();
+
+            setTimeout(() => {
+                currentQuizIndex++;
+                loadQuiz();
+            }, 2000);
+        }
+
+        function resetQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            student.scores.quiz = 0;
+            updateTotalScore();
+            loadQuiz();
+        }
+
+        // --- Core Navigation & Score Management ---
+        function handleRegister(e) {
+            e.preventDefault();
+            playSound('click');
+            student.name = document.getElementById('regName').value;
+            student.className = document.getElementById('regClass').value;
+            student.number = document.getElementById('regNo').value;
+
+            // Hide Registration, Show Nav & Dashboard
+            document.getElementById('screen-register').classList.add('hidden');
+            document.getElementById('navBar').classList.remove('hidden');
+
+            document.getElementById('displayStudentName').innerText = student.name;
+            document.getElementById('displayStudentClass').innerText = student.className;
+            document.getElementById('displayStudentNo').innerText = student.number;
+            document.getElementById('dashStudentName').innerText = student.name;
+
+            switchTab('dashboard');
+            updateTotalScore();
+        }
+
+        function switchTab(tabName) {
+            playSound('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 transition-all flex items-center gap-1.5 shadow-sm';
+                } else {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5';
+                }
+            });
+
+            if (tabName === 'lessons') {
+                switchLesson(currentLessonIndex);
+            } else if (tabName === 'minigame') {
+                loadMinigame();
+            } else if (tabName === 'codinglab') {
+                setTimeout(drawMaze, 50);
+            } else if (tabName === 'quiz') {
+                loadQuiz();
+            }
+        }
+
+        function updateTotalScore() {
+            const total = student.scores.minigame + student.scores.coding + student.scores.quiz;
+            document.getElementById('totalScore').innerText = total;
+            document.getElementById('dashMinigameScore').innerText = `${student.scores.minigame} / 50`;
+            document.getElementById('dashCodingScore').innerText = `${student.scores.coding} / 50`;
+            document.getElementById('dashQuizScore').innerText = `${student.scores.quiz} / 50`;
+
+            const percent = Math.round((total / 150) * 100);
+            document.getElementById('progressText').innerText = `${percent}%`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+
+            const certBtn = document.getElementById('certBtn');
+            if (total >= 100) {
+                certBtn.disabled = false;
+                certBtn.className = 'w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold py-3 px-4 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer animate-pulse';
+            } else {
+                certBtn.disabled = true;
+                certBtn.className = 'w-full bg-slate-800 text-slate-500 cursor-not-allowed font-bold py-3 px-4 rounded-xl text-xs font-orbitron uppercase tracking-wider transition-all flex items-center justify-center gap-2';
+            }
+        }
+
+        function openCertificate() {
+            playSound('win');
+            document.getElementById('certStudentName').innerText = student.name;
+            document.getElementById('certStudentClass').innerText = student.className;
+            document.getElementById('certStudentNo').innerText = student.number;
+            document.getElementById('certTotalScore').innerText = student.scores.minigame + student.scores.coding + student.scores.quiz;
+
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const now = new Date();
+            const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} พ.ศ. ${now.getFullYear() + 543}`;
+            document.getElementById('certDate').innerText = dateStr;
+
+            document.getElementById('certificateModal').classList.remove('hidden');
+        }
+
+        function closeCertificate() {
+            playSound('click');
+            document.getElementById('certificateModal').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            // Initial setup if needed
+        };
+    </script>
+</body>
+</html>
